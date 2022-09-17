@@ -46,7 +46,6 @@ extern BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
 		char Consumer_send1[64] = "Btn1PE ";
 		char Consumer_send2[64] = "Btn1NE ";
 		const TickType_t xFrequency = 50;
-		vTaskSetApplicationTaskTag( NULL, ( void * ) 1 );
 		xLastWakeTime=xTaskGetTickCount();
 		while(1){
 			if (GPIO_read(PORT_1, PIN1)==PIN_IS_HIGH){
@@ -69,7 +68,7 @@ extern BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
 		const TickType_t xFrequency = 50;
 		char Consumer_send1[32] = "Btn2_PE ";
 		char Consumer_send2[32] = "Btn2_NE ";
-		vTaskSetApplicationTaskTag( NULL, ( void * ) 2 );
+		vTaskSetApplicationTaskTag( NULL, (TaskHookFunction_t) 2 );
 		xLastWakeTime=xTaskGetTickCount();	
 		while(1){
 			if (GPIO_read(PORT_1, PIN2)==PIN_IS_HIGH){
@@ -90,7 +89,7 @@ extern BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
 		char Consumer_send1[64] = "Periodc";
 		TickType_t xLastWakeTime;
 		const TickType_t xFrequency = 100;
-		vTaskSetApplicationTaskTag( NULL, ( void * ) 3 );
+		vTaskSetApplicationTaskTag( NULL, (TaskHookFunction_t) 3 );
 		xLastWakeTime=xTaskGetTickCount();
 		while(1){
 			xQueueSendToBack( xQueue1,( void * ) &Consumer_send1,( TickType_t ) 10 );
@@ -98,10 +97,10 @@ extern BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
 		}
 	}
 	void TASK_4(){
-		char Consumer_recieve[64];
+		const signed char Consumer_recieve[64];
 		TickType_t xLastWakeTime;
 		const TickType_t xFrequency = 10;
-		vTaskSetApplicationTaskTag( NULL, ( void * ) 4 );
+		vTaskSetApplicationTaskTag( NULL, (TaskHookFunction_t) 4 );
 		xLastWakeTime=xTaskGetTickCount();
 		while(1){
 
@@ -116,7 +115,7 @@ extern BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
 		int i=0;
 		TickType_t xLastWakeTime;
 		const TickType_t xFrequency = 10;
-		vTaskSetApplicationTaskTag( NULL, ( void * ) 5 );
+		vTaskSetApplicationTaskTag( NULL, (TaskHookFunction_t) 5 );
 		xLastWakeTime=xTaskGetTickCount();
 		while(1){
 			for(i=1;i<33186;i++){ //this number corrosponds to 5 ms excecution time 
@@ -129,7 +128,7 @@ extern BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
 		int i=0;
 		TickType_t xLastWakeTime;
 		const TickType_t xFrequency = 100;
-		vTaskSetApplicationTaskTag( NULL, ( void * ) 6 );
+		vTaskSetApplicationTaskTag( NULL, (TaskHookFunction_t) 6 );
 		xLastWakeTime=xTaskGetTickCount();
 		while(1){
 			for(i=1;i<79646;i++){ //this aamount corrosponds to 12 ms
@@ -152,12 +151,19 @@ extern BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
 		}
 	}*/
 	void Task_Init(){
-		xTaskCreatePeriodic( TASK_1,"Button_1_Monitor",100,NULL,1,&TSK_1,50);
-		xTaskCreatePeriodic( TASK_2,"Button_2_Monitor",100,NULL,1,&TSK_2,50);
-		xTaskCreatePeriodic( TASK_3,"Periodic_Transmitter",100,NULL,1,&TSK_3,100);
-		xTaskCreatePeriodic( TASK_4,"Uart_Receiver",100,NULL,1,&TSK_4,10);
-		xTaskCreatePeriodic( TASK_5,"Load_1_Simulation",100,NULL,1,&TSK_5,10);
-		xTaskCreatePeriodic( TASK_6,"Load_2_Simulation",100,NULL,1,&TSK_6,100);
+		
+		xTaskCreatePeriodic( (TaskFunction_t)TASK_2,"Button_2_Monitor",100,NULL,1,&TSK_2,50);
+				vTaskSetApplicationTaskTag( TSK_2, (TaskHookFunction_t) 2 );
+		xTaskCreatePeriodic( (TaskFunction_t)TASK_3,"Periodic_Transmitter",100,NULL,1,&TSK_3,100);
+				vTaskSetApplicationTaskTag( TSK_3, (TaskHookFunction_t) 3 );
+		xTaskCreatePeriodic( (TaskFunction_t)TASK_4,"Uart_Receiver",100,NULL,1,&TSK_4,10);
+				vTaskSetApplicationTaskTag( TSK_4, (TaskHookFunction_t) 4 );
+		xTaskCreatePeriodic( (TaskFunction_t)TASK_6,"Load_2_Simulation",100,NULL,1,&TSK_6,100);
+				vTaskSetApplicationTaskTag( TSK_6, (TaskHookFunction_t) 6 );
+		xTaskCreatePeriodic( (TaskFunction_t)TASK_1,"Button_1_Monitor",100,NULL,1,&TSK_1,50);
+				vTaskSetApplicationTaskTag( TSK_1, (TaskHookFunction_t) 1 );
+		xTaskCreatePeriodic( (TaskFunction_t)TASK_5,"Load_1_Simulation",100,NULL,1,&TSK_5,10);
+				vTaskSetApplicationTaskTag( TSK_5, (TaskHookFunction_t) 5 );
 	//	xTaskCreatePeriodic( TASK_7,"Trace",100,NULL,3,&TSK_7,20);
 
 	}
@@ -180,7 +186,6 @@ extern BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
 	configTimer1();
 	GPIO_init();
 	xSerialPortInitMinimal(  115200 ,400 );
-	//vSerialPutString(SERHAN,"TEST",5);
 	Task_Init();	
 	xQueue1 = xQueueCreate( 200, sizeof( unsigned long long ) );
 	vTaskStartScheduler();
